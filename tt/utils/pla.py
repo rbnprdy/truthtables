@@ -7,7 +7,11 @@ import numpy as np
 class PLAParsingError(Exception):
     pass
 
+
 def _line_to_list(line):
+    """Converts a pla line to a list of ints.
+    
+    Raises a ValueError if it encounters an unexpected character."""
     l = []
     for c in line:
         if c == '0':
@@ -69,8 +73,7 @@ def read_table(path):
 def read_info(path):
     """Returns a tuple with information about the pla file specified by
     `path`. Specifically: the number of inputs, the number of outputs,
-    and the number of products.
-    """
+    and the number of products."""
     with open(path) as f:
         reset_defined = False
         for line in f:
@@ -81,27 +84,32 @@ def read_info(path):
             elif line.strip() and line.strip()[0:3] == '.p ':
                 num_products = int(line.strip().split()[-1])
     
+    if not num_inputs:
+        except PLAParsingError('PLA file {} does not specify '.format(path) +
+                               'the number of inputs.')
+    if not num_outputs:
+        except PLAParsingError('PLA file {} does not specify '.format(path) +
+                               'the number of outputs.')
+    if not num_products:
+        except PLAParsingError('PLA file {} does not specify '.format(path) +
+                               'the a number of products.')
+    
     return num_inputs, num_outputs, num_products
 
 
 def write_table(tt, path):
-    """Writes a truth table the pla file specified by `path`. The truth table
-    should be specified as a list of lists, where the outer list corresponds
-    to every line in the truth table. Each line then consists of two elements:
-    the inputs and the outputs.
-
-    Possible inputs are `0`, `1`, and `-` for don't care.
-    Possible outputs are `0`, `1`, and `*` for don't care.
-
-    An example row is:
-        ['101--0', '011*1*0']
-    """
+    """Writes a truth table the pla file specified by `path`."""
     with open(path, 'w') as f:
         f.write('# Written by pla_utils on {}\n'.format(datetime.now()))
-        f.write('.i {}\n'.format(len(tt[0][0])))
-        f.write('.o {}\n'.format(len(tt[0][1])))
-        f.write('.p {}\n'.format(len(tt)))
-        for line in tt:
-            f.write('{} {}\n'.format(line[0], line[1]))
-        f.write('.e')
+        # TODO: Add format?
+        f.write('.i {}\n'.format(tt.num_inputs))
+        f.write('.o {}\n'.format(tt.num_outputs))
+        f.write('.ilb {}\n'.format(
+            ' '.join('i{}'.format(i) for i in range(tt.num_inputs))))
+        f.write('.olb {}\n'.format(
+            ' '.join('o{}'.format(i) for i in range(tt.num_outputs))))
+        f.write('.p {}\n'.format(tt.num_products))
+        f.write(str(tt))
+        f.write('\n')
+        f.write('.end')
 

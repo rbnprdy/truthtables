@@ -1,49 +1,76 @@
 """Contains the definition of the TruthTable base class"""
 import numpy as np
 
-from utils.pla_utils import read_table
+from utils.pla import read_table
 
 
 class TruthTable:
         
-    def __init__(self, filename=None, inputs=None, outputs=None):
+    def __init__(self, filename=None, input_lines=None, output_lines=None):
         if filename:
-            self.inputs, self.outputs = read_table(filename)
+            self.input_lines, self.output_lines = read_table(filename)
         else:
-            # FIXME: Check if inputs are numpy arrays
-            if len(inputs.shape) == 1:
-                inputs = np.expand_dims(inputs, axis=0)
-            if len(outputs.shape) == 1:
-                outputs = np.expand_dims(outputs, axis=0)
-            self.inputs = inputs
-            self.outputs = outputs
+            if not isinstance(input_lines, np.ndarray):
+                input_lines = np.asarray(input_lines)
+            if not isinstance(output_lines, np.ndarray):
+                output_lines = np.asarray(output_lines)
+            if len(input_lines.shape) == 1:
+                input_lines = np.expand_dims(input_lines, axis=0)
+            if len(output_lines.shape) == 1:
+                output_lines = np.expand_dims(output_lines, axis=0)
+            self.input_lines = input_lines
+            self.output_lines = output_lines
 
 
     def __getitem__(self, key):
-        if not isinstance(key, slice):
-            print('he', key)
-            inputs = np.expand_dims(self.inputs[key], axis=0)
-            outputs = np.expand_dims(self.outputs[key], axis=0)
-            return TruthTable(inputs=inputs, outputs=outputs)
-        else:
-            print(key)
-            return TruthTable(inputs=self.inputs[key],
-                              outputs=self.outputs[key])
+        return TruthTable(input_lines=self.input_lines[key],
+                          output_lines=self.output_lines[key])
 
     
     def __iter__(self):
-        return iter([TruthTable(inputs=i, outputs=o) for i, o in
-                     zip(self.inputs, self.outputs)])
+        return iter([TruthTable(input_lines=i, output_lines=o) for i, o in
+                     zip(self.input_lines, self.output_lines)])
 
 
     def __str__(self):
         s = ''
-        for i, o in zip(self.inputs, self.outputs):
+        for i, o in zip(self.input_lines, self.output_lines):
             s += ''.join(list(str(c) for c in i)).replace('2', '-') + ' '
             s += ''.join(list(str(c) for c in o)).replace('2', '~') + '\n'
         return s.rstrip()
 
-tt = TruthTable(filename='c17.pla')
-#print(tt.inputs[0:2])
-for t in tt[0:3]:
-    print(t)
+
+    @property
+    def num_inputs(self):
+        return self.input_lines.shape[1]
+
+    
+    @property
+    def num_outputs(self):
+        return self.output_lines.shape[1]
+
+    
+    @property
+    def num_products(self):
+        return self.input_lines.shape[0]
+
+
+    def onset(self, output_num):
+        """Returns a truth table with just the entries where output
+        `output_num` is 1"""
+        onset_idx = (self.output_lines[:,output_num] == 1).nonzero()
+        return TruthTable(input_lines=self.input_lines[onset_idx],
+                          output_lines=self.output_lines[onset_idx])
+
+    def input_product(self, line_num, input_lables=None):
+        """Returns a string representing one line as a product of inputs"""
+        if not input_lables:
+            input_labels = ['i{}'.format(i) for i in range(self.num_inputs)]
+        terms = []
+        for i, val in enumerate(self.input_lines[line_num]):
+            if val == 0:
+                terms.append('~' + input_labels[i])
+            elif val == 1:
+                terms.append(input_labels[i])
+        return ' & '.join(terms)
+
