@@ -3,15 +3,10 @@
 def write_verilog_sop(tt, filename, modulename='ckt'):
     """Writes the truth table to a verilog file by computing the SOP for each
     output"""
-    inputs = ['i{}'.format(i) for i in range(tt.num_inputs)]
-    outputs = ['o{}'.format(i) for i in range(tt.num_outputs)]
+    inputs, outputs = _get_io_names(tt.num_inputs, tt.num_outputs)
 
     with open(filename, 'w') as f:
-        
-        f.write('module {}({});\n\n'.format(
-            modulename, ', '.join(inputs + outputs)))
-        f.write('input {};\n'.format(', '.join(inputs)))
-        f.write('output {};\n\n'.format(', '.join(outputs)))
+        f.write(_get_header(inputs, outputs, modulename))
 
         for output_num, output in enumerate(outputs):
             products = []
@@ -21,3 +16,36 @@ def write_verilog_sop(tt, filename, modulename='ckt'):
             f.write('assign ' + output + ' = ' + sums + ';\n')
 
         f.write('\nendmodule\n')
+
+
+def write_verilog_case(tt, filename, modulename='ckt'):
+    inputs, outputs = _get_io_names(tt.num_inputs, tt.num_outputs)
+    
+    with open(filename, 'w') as f:
+        f.write(_get_header(inputs, outputs, modulename))
+        f.write('always@({}) begin\n'.format(', '.join(inputs)))
+        f.write('\tcasex ({{{}}})\n'.format(', '.join(inputs)))
+        for line in tt:
+            line_str = str(line)
+            input_str, output_str = line_str.split()
+            f.write('\t\t{}\'b{} : '.format(tt.num_inputs, input_str))
+            f.write('{{{}}} = '.format(', '.join(outputs)))
+            f.write('{}\'b{};\n'.format(tt.num_outputs, output_str))
+        f.write('\t\tdefault : {{{}}} = '.format(', '.join(outputs)))
+        f.write('{}\'d0;\n'.format(tt.num_outputs))
+        f.write('\tendcase\nend\nendmodule')
+
+
+def _get_io_names(num_inputs, num_outputs):
+    inputs = ['i{}'.format(i) for i in range(num_inputs)]
+    outputs = ['o{}'.format(i) for i in range(num_outputs)]
+    return inputs, outputs
+
+
+def _get_header(inputs, outputs, modulename):
+    s = 'module {}({});\n\n'.format(
+            modulename, ', '.join(inputs + outputs))
+    s += 'input {};\n'.format(', '.join(inputs))
+    s += 'output {};\n\n'.format(', '.join(outputs))
+    return s
+

@@ -1,7 +1,7 @@
 """Contains the definition of the TruthTable base class"""
 import numpy as np
 
-from utils.pla import read_table
+from .utils.pla import read_table
 
 
 class TruthTable:
@@ -62,6 +62,7 @@ class TruthTable:
         return TruthTable(input_lines=self.input_lines[onset_idx],
                           output_lines=self.output_lines[onset_idx])
 
+
     def input_product(self, line_num, input_lables=None):
         """Returns a string representing one line as a product of inputs"""
         if not input_lables:
@@ -73,4 +74,22 @@ class TruthTable:
             elif val == 1:
                 terms.append(input_labels[i])
         return ' & '.join(terms)
+
+    
+    def to_int(self):
+        """Returns two 1D numpy arrays representing the inputs and outputs as
+        integer values. Raises a ValueError if a DC bit is found."""
+        inputs = np.zeros((self.num_products), dtype=int)
+        outputs = np.zeros((self.num_products), dtype=int)
+        for line_num, (i, o) in enumerate(
+                zip(self.input_lines, self.output_lines)):
+            if 2 in i or 2 in o:
+                raise ValueError('TruthTable cannot have DC bits when ' +
+                                  'converting to int.')
+            i = ''.join(str(val) for val in list(i))
+            o = ''.join(str(val) for val in list(o))
+            inputs[line_num] = int(i, 2)
+            outputs[line_num] = int(o, 2)
+
+        return inputs, outputs
 

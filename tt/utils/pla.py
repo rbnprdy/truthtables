@@ -28,7 +28,7 @@ def _line_to_list(line):
 def read_table(path):
     """Reads the pla file specified by `path` into a numpy array of uints.
     DC is represented by the number 2.
-    
+ 
     Raises a PLAParsingError if the pla file was maleformatted."""
     num_inputs, num_outputs, num_products = read_info(path)
     inputs = np.empty((num_products, num_inputs), dtype=np.uint8)
@@ -85,29 +85,30 @@ def read_info(path):
                 num_products = int(line.strip().split()[-1])
     
     if not num_inputs:
-        except PLAParsingError('PLA file {} does not specify '.format(path) +
+        raise PLAParsingError('PLA file {} does not specify '.format(path) +
                                'the number of inputs.')
     if not num_outputs:
-        except PLAParsingError('PLA file {} does not specify '.format(path) +
+        raise PLAParsingError('PLA file {} does not specify '.format(path) +
                                'the number of outputs.')
     if not num_products:
-        except PLAParsingError('PLA file {} does not specify '.format(path) +
+        raise PLAParsingError('PLA file {} does not specify '.format(path) +
                                'the a number of products.')
     
     return num_inputs, num_outputs, num_products
 
 
-def write_table(tt, path):
+def write_table(tt, path, pla_type=None):
     """Writes a truth table the pla file specified by `path`."""
     with open(path, 'w') as f:
         f.write('# Written by pla_utils on {}\n'.format(datetime.now()))
-        # TODO: Add format?
         f.write('.i {}\n'.format(tt.num_inputs))
         f.write('.o {}\n'.format(tt.num_outputs))
         f.write('.ilb {}\n'.format(
             ' '.join('i{}'.format(i) for i in range(tt.num_inputs))))
-        f.write('.olb {}\n'.format(
+        f.write('.ob {}\n'.format(
             ' '.join('o{}'.format(i) for i in range(tt.num_outputs))))
+        if pla_type:
+            f.write('.type {}\n'.format(pla_type))
         f.write('.p {}\n'.format(tt.num_products))
         f.write(str(tt))
         f.write('\n')
