@@ -42,14 +42,14 @@ class TruthTable:
 
     def __eq__(self, other):
         if isinstance(other, TruthTable):
-            return self.input_lines == other.input_lines and \
-                    self.output_lines == other.output_lines
+            return np.array_equal(self.input_lines, other.input_lines) and \
+                   np.array_equal(self.output_lines, other.output_lines)
         return False
 
     
-    def __add__(self, other)
+    def __add__(self, other):
         return TruthTable(input_lines = np.concatenate(self.input_lines,
-                                                       other.input_lines)
+                                                       other.input_lines),
                           output_lines = np.concatenate(self.output_lines,
                                                         other.output_lines))
 
