@@ -40,6 +40,20 @@ class TruthTable:
         return s.rstrip()
 
 
+    def __eq__(self, other):
+        if isinstance(other, TruthTable):
+            return self.input_lines == other.input_lines and \
+                    self.output_lines == other.output_lines
+        return False
+
+    
+    def __add__(self, other)
+        return TruthTable(input_lines = np.concatenate(self.input_lines,
+                                                       other.input_lines)
+                          output_lines = np.concatenate(self.output_lines,
+                                                        other.output_lines))
+
+
     @property
     def num_inputs(self):
         return self.input_lines.shape[1]
