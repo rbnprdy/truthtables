@@ -29,14 +29,14 @@ def write_verilog_case(tt, filename, modulename='ckt'):
             line_str = str(line)
             input_str, output_str = line_str.split()
             input_str = input_str.replace('-', '?')
-            reduced_outputs = [outputs[i] if x != '~' 
-                               for i, x in enumerate(output_str)]
+            reduced_outputs = [outputs[i] for i, x in enumerate(output_str)
+                               if x != '~']
             output_str = output_str.replace('~', '')
             f.write('\t\t{}\'b{} : '.format(tt.num_inputs, input_str))
             f.write('{{{}}} = '.format(', '.join(reduced_outputs)))
             f.write('{}\'b{};\n'.format(tt.num_outputs, output_str))
         #f.write('\t\tdefault : {{{}}} = '.format(', '.join(outputs)))
-        f.write('{}\'d0;\n'.format(tt.num_outputs))
+        #f.write('{}\'d0;\n'.format(tt.num_outputs))
         f.write('\tendcase\nend\nendmodule')
 
 
