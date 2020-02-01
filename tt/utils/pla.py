@@ -8,29 +8,12 @@ class PLAParsingError(Exception):
     pass
 
 
-def _line_to_list(line):
-    """Converts a pla line to a list of ints.
-    
-    Raises a ValueError if it encounters an unexpected character."""
-    l = []
-    for c in line:
-        if c == '0':
-            l.append(0)
-        elif c == '1':
-            l.append(1)
-        elif c == '-' or c == '~':
-            l.append(2)
-        else:
-            raise ValueError
-    return l
-
-
-def read_table(path):
+def read_pla(path):
     """Reads the pla file specified by `path` into a numpy array of uints.
     DC is represented by the number 2.
  
     Raises a PLAParsingError if the pla file was maleformatted."""
-    num_inputs, num_outputs, num_products = read_info(path)
+    num_inputs, num_outputs, num_products = read_pla_info(path)
     inputs = np.empty((num_products, num_inputs), dtype=np.uint8)
     outputs = np.empty((num_products, num_outputs), dtype=np.uint8)
     tt_start = 0
@@ -70,7 +53,7 @@ def read_table(path):
     return inputs, outputs
 
 
-def read_info(path):
+def read_pla_info(path):
     """Returns a tuple with information about the pla file specified by
     `path`. Specifically: the number of inputs, the number of outputs,
     and the number of products."""
@@ -97,7 +80,7 @@ def read_info(path):
     return num_inputs, num_outputs, num_products
 
 
-def write_table(tt, path, pla_type=None):
+def write_pla(tt, path, pla_type=None):
     """Writes a truth table the pla file specified by `path`."""
     with open(path, 'w') as f:
         f.write('# Written by pla_utils on {}\n'.format(datetime.now()))
@@ -113,4 +96,21 @@ def write_table(tt, path, pla_type=None):
         f.write(str(tt))
         f.write('\n')
         f.write('.end')
+
+
+def _line_to_list(line):
+    """Converts a pla line to a list of ints.
+    
+    Raises a ValueError if it encounters an unexpected character."""
+    l = []
+    for c in line:
+        if c == '0':
+            l.append(0)
+        elif c == '1':
+            l.append(1)
+        elif c == '-' or c == '~':
+            l.append(2)
+        else:
+            raise ValueError
+    return l
 

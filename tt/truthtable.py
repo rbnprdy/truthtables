@@ -1,14 +1,14 @@
 """Contains the definition of the TruthTable base class"""
 import numpy as np
 
-from .utils.pla import read_table
+from .utils.pla import read_pla
 
 
 class TruthTable:
         
     def __init__(self, filename=None, input_lines=None, output_lines=None):
         if filename:
-            self.input_lines, self.output_lines = read_table(filename)
+            self.input_lines, self.output_lines = read_pla(filename)
         else:
             if not isinstance(input_lines, np.ndarray):
                 input_lines = np.asarray(input_lines)
