@@ -1,4 +1,6 @@
 """Contains the definition of the TruthTable base class"""
+import math
+
 import numpy as np
 
 from .utils.pla import read_pla
@@ -69,6 +71,19 @@ class TruthTable:
         return self.input_lines.shape[0]
 
 
+    @property
+    def entropy(self):
+        return entropy([i.split()[-1] for i in str(self).split('\n')])
+
+
+    @property
+    def output_entropy(self):
+        l = []
+        for o in self.output_lines.T:
+            l.append(entropy(list(o)))
+        return l
+
+
     def onset(self, output_num):
         """Returns a truth table with just the entries where output
         `output_num` is 1"""
@@ -106,4 +121,9 @@ class TruthTable:
             outputs[line_num] = int(o, 2)
 
         return inputs, outputs
+
+
+def entropy(l):
+    return sum(-l.count(i)/len(l)*math.log2(l.count(i)/len(l))
+                   for i in set(l))
 
