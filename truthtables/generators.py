@@ -13,9 +13,7 @@ def random_table(num_inputs, num_outputs, bias=0.5):
         for _ in range(num_outputs):
             # bias = 0 => use all 0s
             x = [0, 1][random.random() < bias]
-            print("x", x)
             val = (val << 1) | x
-            print("val", val)
         lines.append(bin(val)[2:].zfill(num_outputs))
         # generates a random number with num_outputs # of bits
         # cuts off "0b" because using bin function
