@@ -52,10 +52,11 @@ def write_verilog_sop(table, filename):
 
         for output_num, output in enumerate(table.outputs):
             products = []
-            for line_idx in table.onset(output_num):
+            for line_idx in table.onset(output):
                 products.append("(" + table.input_product(line_idx) + ")")
-            sums = " | ".join(products)
-            f.write("assign " + output + " = " + sums + ";\n")
+            if products:
+                sums = " | ".join(products)
+                f.write("assign " + output + " = " + sums + ";\n")
 
         f.write("\nendmodule\n")
 
