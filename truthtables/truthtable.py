@@ -192,7 +192,7 @@ class PLA:
     def onset(self, output):
         """Get the indices for which an output is 1."""
         output_num = self.outputs.index(output)
-        return (self.output_lines[:, output_num] == 1).nonzero()
+        return (self.output_lines[:, output_num] == 1).nonzero()[0]
 
     def input_product(self, line_num):
         """Returns a string representing one line as a product of inputs"""

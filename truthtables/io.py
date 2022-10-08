@@ -75,17 +75,14 @@ def write_verilog_case(table, filename):
                 f.write(f"{{{outputs}}} = {table.num_outputs}'b{oup_line};\n")
 
         elif isinstance(table, PLA):
-            f.write(f"\tcase ({{{', '.join(table.inputs)}}})\n")
+            f.write(f"\tcasez ({{{', '.join(table.inputs)}}})\n")
             for line in table:
                 line_str = str(line)
                 input_str, output_str = line_str.split()
                 input_str = input_str.replace("-", "?")
-                reduced_outputs = [
-                    outputs[i] for i, x in enumerate(output_str) if x != "~"
-                ]
-                output_str = output_str.replace("~", "")
+                output_str = output_str.replace("~", "?")
                 f.write(f"\t\t{table.num_inputs}'b{input_str} : ")
-                f.write(f"{{{', '.join(reduced_outputs)}}} = ")
+                f.write(f"{{{outputs}}} = ")
                 f.write(f"{table.num_outputs}'b{output_str};\n")
         else:
             raise ValueError(f"Cannot write table of type '{type(table)}' to file")
