@@ -4,19 +4,32 @@ import random
 
 from truthtables import TruthTable
 
-# add bias (between 0 and 1)
+
 def random_table(num_inputs, num_outputs, bias=0.5):
-    lines = []
+    """Generate a random table.
+
+    Parameters
+    ----------
+    num_inputs: int
+            The number of inputs.
+    num_outputs: int
+            The number of outputs.
+    bias: float
+            The bias for the random number generator.
+            A bias of 0.5 (default) generates 0s and 1s with equal
+            probability. A bias of 1 generates all 1s.
+
+    Returns
+    -------
+    TruthTable
+            The random table.
+    """
+    rows = []
     val = 0
     for _ in range(2**num_inputs):
         val = 0
         for _ in range(num_outputs):
-            # bias = 0 => use all 0s
             x = [0, 1][random.random() < bias]
             val = (val << 1) | x
-        lines.append(bin(val)[2:].zfill(num_outputs))
-        # generates a random number with num_outputs # of bits
-        # cuts off "0b" because using bin function
-        # zfill adds 0 until num_bits is full
-        # lines.append(bin(random.getrandbits(num_outputs))[2:].zfill(num_outputs))
-    return TruthTable(lines)
+        rows.append(bin(val)[2:].zfill(num_outputs))
+    return TruthTable(rows)

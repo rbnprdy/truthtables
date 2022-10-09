@@ -82,6 +82,9 @@ def write_verilog_case(table, filename):
                 f.write(f"\t\t{table.num_inputs}'b{input_str} : ")
                 f.write(f"{{{outputs}}} = ")
                 f.write(f"{table.num_outputs}'b{output_str};\n")
+            f.write(f"default: {{{outputs}}} = ")
+            f.write(f"{table.num_outputs}'b{'0'*table.num_outputs};\n")
+
         else:
             raise ValueError(f"Cannot write table of type '{type(table)}' to file")
         f.write("\tendcase\nend\n\nendmodule")
@@ -98,7 +101,7 @@ def _get_header(inputs, outputs, name, reg=False):
     return s
 
 
-def write_pla(table, path, pla_type=None):
+def write_pla(table, path):
     """Writes a truth table to a pla file."""
     if isinstance(table, TruthTable):
         table = PLA.from_truth_table(table)
@@ -106,10 +109,9 @@ def write_pla(table, path, pla_type=None):
         f.write(f"# Written by truthtables on {datetime.now()}\n")
         f.write(f".i {table.num_inputs}\n")
         f.write(f".o {table.num_outputs}\n")
-        f.write(".ilb {' '.join(table.inputs)}\n")
-        f.write(".ob {' '.join(table.outputs)}\n")
-        if pla_type:
-            f.write(f".type {pla_type}\n")
+        f.write(f".ilb {' '.join(table.inputs)}\n")
+        f.write(f".ob {' '.join(table.outputs)}\n")
+        f.write(f".type {table.pla_type}\n")
         f.write(f".p {table.num_products}\n")
         f.write(str(table))
         f.write("\n")

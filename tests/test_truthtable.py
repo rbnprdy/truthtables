@@ -28,15 +28,23 @@ def test_basic_truthtable():
 
 
 def test_pla():
-    input_lines = ["0-", "10", "11"]
-    output_lines = ["10", "01", "11"]
-    table = PLA(input_lines=input_lines, output_lines=output_lines)
+    input_rows = ["0-", "10", "11"]
+    output_rows = ["10", "01", "11"]
+    table = PLA(input_rows, output_rows)
     assert table.num_inputs == 2
     assert table.num_outputs == 2
-    assert np.array_equal(np.asarray(input_lines), table.input_lines)
-    assert np.array_equal(np.asarray(output_lines), table.output_lines)
+    assert np.array_equal(np.asarray(input_rows), table.input_rows)
+    assert np.array_equal(np.asarray(output_rows), table.output_rows)
 
     assert table.inputs == ["i0", "i1"]
     assert table.outputs == ["o0", "o1"]
 
     assert table.onset("o0") == [0, 2]
+
+
+def test_conversion():
+    input_rows = ["0-0", "001", "10-", "110", "111"]
+    output_rows = ["11", "10", "01", "0~", "11"]
+    pla = PLA(input_rows, output_rows)
+    table = TruthTable.from_pla(pla)
+    assert table.rows == ["11", "10", "11", "00", "01", "01", "00", "11"]
