@@ -2,8 +2,6 @@
 
 import math
 
-import numpy as np
-
 
 class TruthTable:
     """Fully defined truth table as list of bit strings"""
@@ -54,12 +52,8 @@ class TruthTable:
 
     def onset(self, output):
         """Get the indices for which an output is 1."""
-        output_num = self.outputs.index(output)
-        idxs = []
-        for idx, line in enumerate(self):
-            if line[output_num] == "1":
-                idxs.append(idx)
-        return idxs
+        output_idx = self.outputs.index(output)
+        return [i for i, line in enumerate(self) if line[output_idx] == "1"]
 
     def input_product(self, line_num):
         """Returns a string representing one line as a product of inputs"""
@@ -77,148 +71,99 @@ class PLA:
 
     def __init__(
         self,
-        filename=None,
-        input_lines=None,
-        output_lines=None,
+        input_lines,
+        output_lines,
+        name="ckt",
         inputs=None,
         outputs=None,
-        name="ckt",
     ):
-        if filename:
-            self.input_lines, self.output_lines = read_pla(filename)
-        else:
-            if not isinstance(input_lines, np.ndarray):
-                input_lines = np.asarray(input_lines)
-            if not isinstance(output_lines, np.ndarray):
-                output_lines = np.asarray(output_lines)
-            if len(input_lines.shape) == 1:
-                input_lines = np.expand_dims(input_lines, axis=0)
-            if len(output_lines.shape) == 1:
-                output_lines = np.expand_dims(output_lines, axis=0)
-            self.input_lines = input_lines
-            self.output_lines = output_lines
-
-        num_inputs = self.num_inputs
-        if inputs:
-            if num_inputs != len(inputs):
-                raise ValueError("Number of inputs must equal log2(number of rows)")
-            self.inputs = inputs
-        else:
-            self.inputs = [f"i{i}" for i in range(num_inputs)]
-
-        num_outputs = self.num_outputs
-        if outputs:
-            if num_outputs != len(outputs):
-                raise ValueError("Number of outputs must equal length of each row")
-            self.outputs = outputs
-        else:
-            self.outputs = [f"o{i}" for i in range(num_outputs)]
+        self.input_lines = input_lines
+        self.output_lines = output_lines
 
         self.name = name
+
+        if inputs:
+            self.inputs = inputs
+        else:
+            self.inputs = [f"i{i}" for i in range(self.num_inputs)]
+
+        if outputs:
+            self.outputs = outputs
+        else:
+            self.outputs = [f"o{i}" for i in range(self.num_outputs)]
+
+    @staticmethod
+    def from_file(filename):
+        input_lines, output_lines = read_pla(filename)
+        return PLA(input_lines, output_lines)
 
     @staticmethod
     def from_truth_table(table):
         """Create a PLA from a TruthTable."""
-        input_lines = []
-        output_lines = []
-        for idx, line in enumerate(table):
-            input_lines.append([int(i) for i in bin(idx)[2:].zfill(table.num_inputs)])
-            output_lines.append([int(i) for i in line])
         return PLA(
-            input_lines=input_lines,
-            output_lines=output_lines,
+            [bin(i)[2:].zfill(table.num_inputs) for i in range(table.num_inputs)],
+            table.output_lines,
             inputs=table.inptus,
             outputs=table.outputs,
             name=table.name,
         )
 
     def __getitem__(self, key):
-        return PLA(
-            input_lines=self.input_lines[key], output_lines=self.output_lines[key]
-        )
+        if isinstance(key, int):
+            return self.input_lines[key], self.output_lines[key]
+        return PLA(self.input_lines[key], self.output_lines[key])
 
     def __iter__(self):
-        return iter(
-            [
-                PLA(input_lines=i, output_lines=o)
-                for i, o in zip(self.input_lines, self.output_lines)
-            ]
-        )
+        return iter([self[i] for i in range(self.num_products)])
 
     def __str__(self):
-        s = ""
-        for i, o in zip(self.input_lines, self.output_lines):
-            s += "".join(list(str(c) for c in i)).replace("2", "-") + " "
-            s += "".join(list(str(c) for c in o)).replace("2", "~") + "\n"
-        return s.rstrip()
-
-    def __eq__(self, other):
-        if isinstance(other, PLA):
-            return np.array_equal(
-                self.input_lines, other.input_lines
-            ) and np.array_equal(self.output_lines, other.output_lines)
-        return False
+        return "\n".join(" ".join(line) for line in self)
 
     def __add__(self, other):
         return PLA(
-            input_lines=np.concatenate(self.input_lines, other.input_lines),
-            output_lines=np.concatenate(self.output_lines, other.output_lines),
+            self.input_lines + other.input_lines,
+            self.output_lines + other.output_lines,
+            inputs=self.inputs,
+            outputs=self.outputs,
+            name=self.name,
         )
 
     @property
     def num_inputs(self):
-        return self.input_lines.shape[1]
+        return len(self.input_lines[0])
 
     @property
     def num_outputs(self):
-        return self.output_lines.shape[1]
+        return len(self.output_lines[0])
 
     @property
     def num_products(self):
-        return self.input_lines.shape[0]
+        return len(self.input_lines)
 
     @property
     def entropy(self):
         return entropy([i.split()[-1] for i in str(self).split("\n")])
 
     @property
-    def output_entropy(self):
-        entropies = []
-
-        for o in self.output_lines.T:
-            entropies.append(entropy(list(o)))
-        return entropies
+    def output_entropies(self):
+        return [entropy(o) for o in list(map(list, zip(*self.output_lines)))]
 
     def onset(self, output):
         """Get the indices for which an output is 1."""
-        output_num = self.outputs.index(output)
-        return (self.output_lines[:, output_num] == 1).nonzero()[0]
+        output_idx = self.outputs.index(output)
+        return [
+            i for i, line in enumerate(self.output_lines) if line[output_idx] == "1"
+        ]
 
     def input_product(self, line_num):
         """Returns a string representing one line as a product of inputs"""
         terms = []
         for i, val in enumerate(self.input_lines[line_num]):
-            if val == 0:
+            if val == "0":
                 terms.append("~" + self.inputs[i])
-            elif val == 1:
+            elif val == "1":
                 terms.append(self.inputs[i])
         return " & ".join(terms)
-
-    def to_int(self):
-        """Returns numpy arrays representing the inputs and outputs as ints."""
-        inputs = np.zeros((self.num_products), dtype=int)
-        outputs = np.zeros((self.num_products), dtype=int)
-        for line_num, (i, o) in enumerate(zip(self.input_lines, self.output_lines)):
-            if 2 in i or 2 in o:
-                raise ValueError(
-                    "TruthTable cannot have DC bits when " + "converting to int."
-                )
-            i = "".join(str(val) for val in list(i))
-            o = "".join(str(val) for val in list(o))
-            inputs[line_num] = int(i, 2)
-            outputs[line_num] = int(o, 2)
-
-        return inputs, outputs
 
 
 def entropy(vals):
@@ -235,59 +180,27 @@ class PLAParsingError(Exception):
 def read_pla(path):
     """Read a PLA from a file."""
     num_inputs, num_outputs, num_products = read_pla_info(path)
-    inputs = np.empty((num_products, num_inputs), dtype=np.uint8)
-    outputs = np.empty((num_products, num_outputs), dtype=np.uint8)
-    table_start = 0
 
-    def line_to_list(line):
-        """Convert a pla line to a list of ints."""
-        lines = []
-        for c in line:
-            if c == "0":
-                lines.append(0)
-            elif c == "1":
-                lines.append(1)
-            elif c in ("-", "~"):
-                lines.append(2)
-            else:
-                raise ValueError
-        return lines
-
+    inputs = []
+    outputs = []
     with open(path) as f:
-        for line_num, line in enumerate(f):
+        for idx, line in enumerate(f):
             line = line.strip()
             # Check if this line specifices a line in the truth table
             if line and line[0] in "10-":
-                if table_start == 0:
-                    table_start = line_num
                 sections = line.split()
                 if len(sections) != 2:
-                    raise PLAParsingError(
-                        f"PLA file {path} line {line_num} contains {len(sections)}"
-                        "sections instead of 2."
-                    )
+                    raise PLAParsingError(f"Malformatted line at line {idx}")
                 i, o = sections
                 if len(i) != num_inputs:
-                    raise PLAParsingError(
-                        f"PLA file {path} line {line_num} contains the incorrect "
-                        "number of inputs."
-                    )
+                    raise PLAParsingError(f"Incorrect number of inputs at line {idx}")
                 if len(o) != num_outputs:
-                    raise PLAParsingError(
-                        f"PLA file {path} line {line_num} contains the incorrect "
-                        "number of outputs."
-                    )
-                try:
-                    i = line_to_list(i)
-                    o = line_to_list(o)
-                except ValueError as e:
-                    raise PLAParsingError(
-                        f"PLA file {path} line {line_num} contains an unexpected "
-                        "character."
-                    ) from e
+                    raise PLAParsingError(f"Incorrect number of outputs at line {idx}")
+                inputs.append(i)
+                outputs.append(o)
 
-                inputs[line_num - table_start] = i
-                outputs[line_num - table_start] = o
+    if len(inputs) != num_products:
+        raise PLAParsingError("PLA file header mismatches actual number of products")
 
     return inputs, outputs
 

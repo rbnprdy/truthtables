@@ -76,9 +76,7 @@ def write_verilog_case(table, filename):
 
         elif isinstance(table, PLA):
             f.write(f"\tcasez ({{{', '.join(table.inputs)}}})\n")
-            for line in table:
-                line_str = str(line)
-                input_str, output_str = line_str.split()
+            for input_str, output_str in table:
                 input_str = input_str.replace("-", "?")
                 output_str = output_str.replace("~", "?")
                 f.write(f"\t\t{table.num_inputs}'b{input_str} : ")

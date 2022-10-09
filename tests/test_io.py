@@ -34,19 +34,20 @@ def test_to_file(mode, table, tmp_path):
             )[0]
             assert res == {oup: int(row[i]) for i, oup in enumerate(table.outputs)}
         else:
-            vector = {inp: row.input_lines[0][i] for i, inp in enumerate(table.inputs)}
+            vector = {inp: row[0][i] for i, inp in enumerate(table.inputs)}
             set_inputs = {k: bool(v) for k, v in vector.items() if v != 2}
             unset_inputs = [k for k, v in vector.items() if v == 2]
             if unset_inputs:
                 vectors = []
-                for i, vs in enumerate(product([False, True], repeat=len(unset_inputs))):
-                    vectors.append({**{k: v for k, v in zip(unset_inputs, vs)}, **set_inputs})
+                for i, vs in enumerate(
+                    product([False, True], repeat=len(unset_inputs))
+                ):
+                    vectors.append(
+                        {**{k: v for k, v in zip(unset_inputs, vs)}, **set_inputs}
+                    )
             else:
                 vectors = [set_inputs]
-            print('vectors', vectors)
             for res in sim.simulate(vectors):
-                print('res', res)
-                print('expected', {oup: bool(row.output_lines[0][i]) for i, oup in enumerate(table.outputs)})
-                assert res == {oup: bool(row.output_lines[0][i]) for i, oup in enumerate(table.outputs)}
-
-            
+                assert res == {
+                    oup: bool(row[1][i]) for i, oup in enumerate(table.outputs)
+                }

@@ -26,9 +26,10 @@ def test_basic_truthtable():
     assert table.input_product(2) == "i0 & ~i1"
     assert table.input_product(3) == "i0 & i1"
 
+
 def test_pla():
-    input_lines = [[0, 2], [1, 0], [1, 1]]
-    output_lines = [[1, 0], [0, 1], [1, 1]]
+    input_lines = ["0-", "10", "11"]
+    output_lines = ["10", "01", "11"]
     table = PLA(input_lines=input_lines, output_lines=output_lines)
     assert table.num_inputs == 2
     assert table.num_outputs == 2
@@ -38,4 +39,4 @@ def test_pla():
     assert table.inputs == ["i0", "i1"]
     assert table.outputs == ["o0", "o1"]
 
-    assert table.onset("o0").tolist() == [0, 2]
+    assert table.onset("o0") == [0, 2]
