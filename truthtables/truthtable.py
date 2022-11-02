@@ -171,6 +171,9 @@ class PLA:
             name=self.name,
         )
 
+    def __len__(self):
+        return len(self.input_rows)
+
     @property
     def num_inputs(self):
         return len(self.input_rows[0])
