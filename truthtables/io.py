@@ -50,7 +50,7 @@ def write_verilog_sop(table, filename):
     with open(filename, "w") as f:
         f.write(_get_header(table.inputs, table.outputs, table.name))
 
-        for output_num, output in enumerate(table.outputs):
+        for output in table.outputs:
             products = []
             for line_idx in table.onset(output):
                 products.append("(" + table.input_product(line_idx) + ")")
@@ -75,15 +75,20 @@ def write_verilog_case(table, filename):
                 f.write(f"{{{outputs}}} = {table.num_outputs}'b{oup_line};\n")
 
         elif isinstance(table, PLA):
-            f.write(f"\tcasez ({{{', '.join(table.inputs)}}})\n")
-            for input_str, output_str in table:
-                input_str = input_str.replace("-", "?")
-                output_str = output_str.replace("~", "?")
-                f.write(f"\t\t{table.num_inputs}'b{input_str} : ")
-                f.write(f"{{{outputs}}} = ")
-                f.write(f"{table.num_outputs}'b{output_str};\n")
-            f.write(f"default: {{{outputs}}} = ")
-            f.write(f"{table.num_outputs}'b{'0'*table.num_outputs};\n")
+            raise NotImplementedError
+            # FIXME: This code will not work unless the type is fr/fdr
+            #        and there are no '-'s in the table. Not sure how to
+            #        handle '-' besides generating a different case statement
+            #        for each output.
+            # f.write(f"\tcasez ({{{', '.join(table.inputs)}}})\n")
+            # for input_str, output_str in table:
+            #     input_str = input_str.replace("-", "?")
+            #     output_str = output_str.replace("~", "?")
+            #     f.write(f"\t\t{table.num_inputs}'b{input_str} : ")
+            #     f.write(f"{{{outputs}}} = ")
+            #     f.write(f"{table.num_outputs}'b{output_str};\n")
+            # f.write(f"default: {{{outputs}}} = ")
+            # f.write(f"{table.num_outputs}'b{'0'*table.num_outputs};\n")
 
         else:
             raise ValueError(f"Cannot write table of type '{type(table)}' to file")

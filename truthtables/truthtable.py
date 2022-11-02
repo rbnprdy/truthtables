@@ -32,6 +32,8 @@ class TruthTable:
 
     @staticmethod
     def from_pla(table):
+        raise NotImplementedError
+        # FIXME: This is broken. Doesn't handle different PLA types or ~
         # Expand DCs
         expanded_input_rows = []
         expanded_output_rows = []
@@ -116,7 +118,7 @@ class PLA:
         name="ckt",
         inputs=None,
         outputs=None,
-        pla_type="fd",
+        pla_type="fr",
     ):
         self.input_rows = input_rows
         self.output_rows = output_rows
@@ -243,7 +245,7 @@ def read_pla(path):
                 inputs.append(i)
                 outputs.append(o)
 
-    if len(inputs) != num_products:
+    if num_products and len(inputs) != num_products:
         raise PLAParsingError("PLA file header mismatches actual number of products")
 
     return inputs, outputs, pla_type
@@ -282,7 +284,5 @@ def read_pla_info(path):
         raise PLAParsingError("PLA file does not specify the number of inputs.")
     if not num_outputs:
         raise PLAParsingError("PLA file does not specify the number of outputs.")
-    if not num_products:
-        raise PLAParsingError("PLA file does not specify the a number of products.")
 
     return num_inputs, num_outputs, num_products, pla_type
