@@ -5,6 +5,14 @@ import ast
 
 from truthtables import TruthTable
 
+def mask_table(t1, t2):
+    rand_row = []
+    for i in range(2**t1.num_inputs):
+        val = int(t1.rows[i], 2) ^ int(t2.rows[i], 2)
+        rand_row.append(bin(val)[2:].zfill(t1.num_outputs))
+
+    return TruthTable(rand_row)
+
 def file_table(filename, num_inputs, num_outputs, bias=0.5):
 
     dict_list = []
@@ -19,10 +27,7 @@ def file_table(filename, num_inputs, num_outputs, bias=0.5):
         d = d.replace("\n", "")
         d = d.replace("{", "")
         d = d.replace("}", "")
-        #print("Hello")
-        #print(d)
         data = dict(item.split(":") for item in d.split(","))
-        #for item in d.split(","):
         #    print(item.split(":"))
         dict_list.append(data)
 
@@ -40,7 +45,7 @@ def file_table(filename, num_inputs, num_outputs, bias=0.5):
                 sv = 1
             val = (val << 1) | sv
             x = [0, 1][random.random() < bias]
-            #rand_val = (rand_val << 1) | x
+            rand_val = (rand_val << 1) | x
         #val = (val ^ rand_val)
         rows.append(bin(val)[2:].zfill(num_outputs))
 
