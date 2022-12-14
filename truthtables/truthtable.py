@@ -1,5 +1,5 @@
 """Classes for representing truth tables"""
-
+import ast
 import math
 from itertools import product
 
@@ -29,6 +29,30 @@ class TruthTable:
 
         self.rows = rows
         self.name = name
+
+    def __xor__(self, other):
+        """Bitwise xor two truth tables"""
+        if self.num_inputs != other.num_inputs:
+            raise ValueError("TruthTables must have same number of inputs")
+        if self.num_outputs != other.num_outputs:
+            raise ValueError("TruthTables must have same number of outputs")
+
+        new_rows = []
+        for i in range(2**self.num_inputs):
+            val = int(self.rows[i], 2) ^ int(other.rows[i], 2)
+            new_rows.append(bin(val)[2:].zfill(self.num_outputs))
+
+        return TruthTable(new_rows)
+
+    @staticmethod
+    def from_dicts_file(filename):
+
+        with open(filename) as f:
+            rows_dict = [ast.literal_eval(i) for i in f if i.strip()]
+
+        outputs = sorted(rows_dict[0])
+        rows = ["".join(str(int(d[o])) for o in outputs) for d in rows_dict]
+        return TruthTable(rows, outputs=outputs)
 
     @staticmethod
     def from_pla(table):
