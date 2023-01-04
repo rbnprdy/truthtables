@@ -2,12 +2,20 @@
 import ast
 import math
 from itertools import product
+from typing import Optional
+from os import PathLike
 
 
 class TruthTable:
     """Fully defined truth table as list of bit strings"""
 
-    def __init__(self, rows, inputs=None, outputs=None, name="ckt"):
+    def __init__(
+        self,
+        rows: list[str],
+        inputs: Optional[list[str]] = None,
+        outputs: Optional[list[str]] = None,
+        name: str = "ckt",
+    ):
         num_inputs = math.log(len(rows), 2)
         if not num_inputs.is_integer():
             raise ValueError("Number of rows must be a power of 2")
@@ -45,12 +53,13 @@ class TruthTable:
         return TruthTable(new_rows)
 
     @staticmethod
-    def from_dicts_file(filename):
+    def from_dicts_file(filename: PathLike, outputs=None):
 
         with open(filename) as f:
             rows_dict = [ast.literal_eval(i) for i in f if i.strip()]
 
-        outputs = sorted(rows_dict[0])
+        if not outputs:
+            outputs = sorted(rows_dict[0])
         rows = ["".join(str(int(d[o])) for o in outputs) for d in rows_dict]
         return TruthTable(rows, outputs=outputs)
 
@@ -112,16 +121,16 @@ class TruthTable:
     def num_outputs(self):
         return len(self.outputs)
 
-    def input_str(self, line_num):
+    def input_str(self, line_num: int):
         """Get the bit string value of the inputs at a line."""
         return bin(line_num)[2:].zfill(self.num_inputs)
 
-    def onset(self, output):
+    def onset(self, output: str):
         """Get the indices for which an output is 1."""
         output_idx = self.outputs.index(output)
         return [i for i, line in enumerate(self) if line[output_idx] == "1"]
 
-    def input_product(self, line_num):
+    def input_product(self, line_num: int):
         """Returns a string representing one line as a product of inputs"""
         terms = []
         for i, val in enumerate(self.input_str(line_num)):

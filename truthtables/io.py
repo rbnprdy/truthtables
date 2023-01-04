@@ -61,38 +61,27 @@ def write_verilog_sop(table, filename):
         f.write("\nendmodule\n")
 
 
-def write_verilog_case(table, filename):
+def get_case_block(table: TruthTable):
+    s = "always@(*) begin\n"
+    outputs = ", ".join(table.outputs)
+    if isinstance(table, TruthTable):
+        s += f"\tcase ({{{', '.join(table.inputs)}}})\n"
+        for idx, oup_line in enumerate(table):
+            inp_line = bin(idx)[2:].zfill(table.num_inputs)
+            s += f"\t\t{table.num_inputs}'b{inp_line} : "
+            s += f"{{{outputs}}} = {table.num_outputs}'b{oup_line};\n"
+    elif isinstance(table, PLA):
+        raise NotImplementedError
+    s += "\tendcase\nend\n"
+    return s
+
+
+def write_verilog_case(table: TruthTable, filename):
     """Write a truth table to a verilog file using a case statement."""
     with open(filename, "w") as f:
         f.write(_get_header(table.inputs, table.outputs, table.name, reg=True))
-        f.write("always@(*) begin\n")
-        outputs = ", ".join(table.outputs)
-        if isinstance(table, TruthTable):
-            f.write(f"\tcase ({{{', '.join(table.inputs)}}})\n")
-            for idx, oup_line in enumerate(table):
-                inp_line = bin(idx)[2:].zfill(table.num_inputs)
-                f.write(f"\t\t{table.num_inputs}'b{inp_line} : ")
-                f.write(f"{{{outputs}}} = {table.num_outputs}'b{oup_line};\n")
-
-        elif isinstance(table, PLA):
-            raise NotImplementedError
-            # FIXME: This code will not work unless the type is fr/fdr
-            #        and there are no '-'s in the table. Not sure how to
-            #        handle '-' besides generating a different case statement
-            #        for each output.
-            # f.write(f"\tcasez ({{{', '.join(table.inputs)}}})\n")
-            # for input_str, output_str in table:
-            #     input_str = input_str.replace("-", "?")
-            #     output_str = output_str.replace("~", "?")
-            #     f.write(f"\t\t{table.num_inputs}'b{input_str} : ")
-            #     f.write(f"{{{outputs}}} = ")
-            #     f.write(f"{table.num_outputs}'b{output_str};\n")
-            # f.write(f"default: {{{outputs}}} = ")
-            # f.write(f"{table.num_outputs}'b{'0'*table.num_outputs};\n")
-
-        else:
-            raise ValueError(f"Cannot write table of type '{type(table)}' to file")
-        f.write("\tendcase\nend\n\nendmodule")
+        f.write(get_case_block(table))
+        f.write("\nendmodule")
 
 
 def _get_header(inputs, outputs, name, reg=False):
