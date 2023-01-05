@@ -53,7 +53,7 @@ class TruthTable:
         return TruthTable(new_rows)
 
     @staticmethod
-    def from_dicts_file(filename: PathLike, outputs=None):
+    def from_dicts_file(filename: PathLike, inputs=None, outputs=None):
 
         with open(filename) as f:
             rows_dict = [ast.literal_eval(i) for i in f if i.strip()]
@@ -61,7 +61,7 @@ class TruthTable:
         if not outputs:
             outputs = sorted(rows_dict[0])
         rows = ["".join(str(int(d[o])) for o in outputs) for d in rows_dict]
-        return TruthTable(rows, outputs=outputs)
+        return TruthTable(rows, inputs=inputs, outputs=outputs)
 
     @staticmethod
     def from_pla(table):
