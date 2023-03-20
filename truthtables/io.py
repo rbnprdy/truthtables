@@ -53,23 +53,23 @@ def write_verilog_sop(table, filename):
         for output in table.outputs:
             products = []
             for line_idx in table.onset(output):
-                products.append("(" + table.input_product(line_idx) + ")")
+                products.append("( " + table.input_product(line_idx) + " )")
             if products:
                 sums = " | ".join(products)
-                f.write("assign " + output + " = " + sums + ";\n")
+                f.write("assign " + output + " = " + sums + " ;\n")
 
         f.write("\nendmodule\n")
 
 
 def get_case_block(table: TruthTable):
     s = "always@(*) begin\n"
-    outputs = ", ".join(table.outputs)
+    outputs = " , ".join(table.outputs)
     if isinstance(table, TruthTable):
-        s += f"\tcase ({{{', '.join(table.inputs)}}})\n"
+        s += f"\tcase ({{ {' , '.join(table.inputs)} }})\n"
         for idx, oup_line in enumerate(table):
             inp_line = bin(idx)[2:].zfill(table.num_inputs)
             s += f"\t\t{table.num_inputs}'b{inp_line} : "
-            s += f"{{{outputs}}} = {table.num_outputs}'b{oup_line};\n"
+            s += f"{{ {outputs} }} = {table.num_outputs}'b{oup_line};\n"
     elif isinstance(table, PLA):
         raise NotImplementedError
     s += "\tendcase\nend\n"
@@ -86,12 +86,12 @@ def write_verilog_case(table: TruthTable, filename):
 
 def _get_header(inputs, outputs, name, reg=False):
     s = f"// Written by truthtables on {datetime.now()}\n"
-    s += f"module {name}({', '.join(inputs + outputs)});\n\n"
-    s += f"input {', '.join(inputs)};\n"
+    s += f"module {name}( {' , '.join(inputs + outputs)} );\n\n"
+    s += f"input {' , '.join(inputs)} ;\n"
     if reg:
-        s += f"output reg {', '.join(outputs)};\n\n"
+        s += f"output reg {' , '.join(outputs)} ;\n\n"
     else:
-        s += f"output {', '.join(outputs)};\n\n"
+        s += f"output {' , '.join(outputs)} ;\n\n"
     return s
 
 
